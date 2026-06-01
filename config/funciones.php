@@ -52,8 +52,25 @@ function enviarCorreo(string $para, string $asunto, string $cuerpoHtml): bool {
     return mail($para, $asunto, $cuerpoHtml, $headers);
 }
 
-// Devuelve el icono SVG de una categoría de actividad
-function iconoCategoria(string $cat): string {
+// Convierte el valor de categoría de la BD al slug CSS (sin tildes, minúsculas)
+function slugCategoria(string $cat): string {
+    $map = [
+        'gastronomía'    => 'gastronomia',
+        'gastronomia'    => 'gastronomia',
+        'cultura'        => 'cultura',
+        'transporte'     => 'transporte',
+        'naturaleza'     => 'naturaleza',
+        'aventura'       => 'aventura',
+        'compras'        => 'compras',
+        'alojamiento'    => 'alojamiento',
+        'entretenimiento'=> 'entretenimiento',
+        'ocio'           => 'ocio',
+    ];
+    return $map[mb_strtolower($cat, 'UTF-8')] ?? 'default';
+}
+
+// Devuelve el emoji de una categoría (recibe el slug)
+function iconoCategoria(string $slug): string {
     $iconos = [
         'gastronomia'    => '🍽️',
         'cultura'        => '🏛️',
@@ -63,12 +80,13 @@ function iconoCategoria(string $cat): string {
         'compras'        => '🛍️',
         'alojamiento'    => '🏨',
         'entretenimiento'=> '🎭',
+        'ocio'           => '🌅',
     ];
-    return $iconos[$cat] ?? '📍';
+    return $iconos[$slug] ?? '📍';
 }
 
-// Clases CSS para la pastilla de categoría
-function claseCategoria(string $cat): string {
+// Clase CSS para la pastilla de categoría (recibe el slug)
+function claseCategoria(string $slug): string {
     $clases = [
         'gastronomia'    => 'cat-gastronomia',
         'cultura'        => 'cat-cultura',
@@ -78,6 +96,7 @@ function claseCategoria(string $cat): string {
         'compras'        => 'cat-compras',
         'alojamiento'    => 'cat-alojamiento',
         'entretenimiento'=> 'cat-entretenimiento',
+        'ocio'           => 'cat-ocio',
     ];
-    return $clases[$cat] ?? 'cat-default';
+    return $clases[$slug] ?? 'cat-default';
 }

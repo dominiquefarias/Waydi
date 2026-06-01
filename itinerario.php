@@ -149,7 +149,7 @@ $totalActs     = array_sum(array_map(fn($d) => count($d['actividades']), $dias))
                 <?php if ($dia['actividades']): ?>
                 <div class="tl-items">
                     <?php foreach ($dia['actividades'] as $j => $act): ?>
-                    <?php $cat = $act['category'] ?: 'default'; ?>
+                    <?php $cat = slugCategoria($act['category'] ?? ''); ?>
                     <div class="tl-item" id="act-<?= $i ?>-<?= $j ?>"
                          onclick="seleccionarActividad(<?= $i ?>, <?= $j ?>)">
                         <div class="tl-tiempo">

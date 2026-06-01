@@ -34,7 +34,7 @@ function seleccionarActividad(dia, act) {
     // Quitar selección anterior
     const anterior = document.getElementById('act-' + dia + '-' + actActual);
     const pinAnt   = document.getElementById('pin-' + dia + '-' + actActual);
-    if (anterior) anterior.classList.remove('activa');
+    if (anterior) anterior.classList.remove('activo');
     if (pinAnt)   pinAnt.classList.remove('activo');
 
     actActual = act;
@@ -42,7 +42,7 @@ function seleccionarActividad(dia, act) {
     // Marcar nueva selección
     const actEl = document.getElementById('act-' + dia + '-' + act);
     const pinEl = document.getElementById('pin-' + dia + '-' + act);
-    if (actEl) actEl.classList.add('activa');
+    if (actEl) actEl.classList.add('activo');
     if (pinEl) pinEl.classList.add('activo');
 }
 

@@ -114,3 +114,5 @@ Luego accede a `/admin` en el frontend.
 - PHP usa PDO para todas las consultas (sin mysqli)
 - Los tokens JWT expiran en 7 días
 - El endpoint `forgot-password` devuelve siempre el mismo mensaje (no revela si el email existe)
+- `tsconfig.json` es un único archivo (sin split app/node) — usa `tsc --noEmit` en el build
+- Los estilos globales están solo en `src/index.css` — `src/App.css` fue eliminado (era template de Vite)

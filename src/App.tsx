@@ -12,7 +12,6 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AdminPage } from './pages/AdminPage';
-import './index.css';
 
 function ItineraryView() {
   const { logout, user } = useAuth();

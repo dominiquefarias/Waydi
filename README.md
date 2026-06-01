@@ -67,51 +67,72 @@ Waydi/
 
 ---
 
-## ⚙️ Instalación
+## ⚙️ Instalación (Ubuntu + Apache + MySQL)
 
-### 1. Base de datos
-
-```sql
--- Crear la base de datos desde cero
-source database/schema.sql;
-
--- (Opcional) Cargar datos de ejemplo
-source database/seed.sql;
-```
-
-### 2. Variables de entorno
+### 1. Clonar el proyecto en Apache
 
 ```bash
-cp .env.example .env
-# Edita .env y rellena DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+cd /var/www/html
+git clone https://github.com/dominiquefarias/Waydi.git
 ```
 
-### 3. Apache
+### 2. Base de datos y usuario MySQL
 
-Apunta el DocumentRoot al directorio del proyecto:
+Un solo comando crea la BD, el usuario y ajusta la política de contraseñas:
+
+```bash
+sudo mysql < /var/www/html/Waydi/database/setup.sql
+```
+
+Luego importa las tablas y los datos de ejemplo:
+
+```bash
+mysql -u waydi -pwaydi1234 waydi < /var/www/html/Waydi/database/schema.sql
+mysql -u waydi -pwaydi1234 waydi < /var/www/html/Waydi/database/seed.sql
+```
+
+### 3. Variables de entorno
+
+```bash
+cp /var/www/html/Waydi/.env.example /var/www/html/Waydi/.env
+# El .env ya viene configurado para el usuario waydi/waydi1234
+# Solo cambia los valores si usas credenciales diferentes
+```
+
+### 4. Apache — apuntar al proyecto
+
+Edita la configuración de Apache:
+
+```bash
+sudo nano /etc/apache2/sites-available/000-default.conf
+```
+
+Reemplaza el contenido con:
 
 ```apache
 <VirtualHost *:80>
-    ServerName localhost
-    DocumentRoot /ruta/al/proyecto/Waydi
+    DocumentRoot /var/www/html/Waydi
 
-    <Directory /ruta/al/proyecto/Waydi>
+    <Directory /var/www/html/Waydi>
         AllowOverride All
         Require all granted
     </Directory>
 </VirtualHost>
 ```
 
-Activa el módulo de rewrite si no lo tienes:
+Activa rewrite y reinicia:
+
 ```bash
 sudo a2enmod rewrite
 sudo systemctl restart apache2
 ```
 
-### 4. Primer administrador
+Abre `http://localhost` — listo.
 
-```sql
-UPDATE users SET is_admin = 1 WHERE email = 'tu@email.com';
+### 5. Primer administrador
+
+```bash
+mysql -u waydi -pwaydi1234 waydi -e "UPDATE users SET is_admin = 1 WHERE email = 'tu@email.com';"
 ```
 
 Luego accede a `http://localhost/admin/`.

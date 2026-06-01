@@ -36,13 +36,25 @@ Waydi/
 └── .env                ← Variables de entorno (no está en git)
 ```
 
-## Cómo arrancar (Apache + MySQL)
+## Cómo arrancar (Ubuntu + Apache + MySQL)
 
-1. Clona el repo en la carpeta que sirve Apache (ej. `/var/www/html/waydi`)
-2. Apunta Apache a la raíz del proyecto
-3. Crea la base de datos: `mysql -u root -p < database/schema.sql`
-4. Copia y rellena el .env: `cp .env.example .env`
-5. Abre `http://localhost` en el navegador
+```bash
+# 1. Clonar en Apache
+cd /var/www/html && git clone https://github.com/dominiquefarias/Waydi.git
+
+# 2. Crear BD y usuario MySQL (una sola vez)
+sudo mysql < /var/www/html/Waydi/database/setup.sql
+mysql -u waydi -pwaydi1234 waydi < /var/www/html/Waydi/database/schema.sql
+mysql -u waydi -pwaydi1234 waydi < /var/www/html/Waydi/database/seed.sql
+
+# 3. Variables de entorno
+cp .env.example .env   # ya viene preconfigurado
+
+# 4. Apache apuntando al proyecto (en 000-default.conf):
+#    DocumentRoot /var/www/html/Waydi
+#    <Directory /var/www/html/Waydi> AllowOverride All </Directory>
+sudo a2enmod rewrite && sudo systemctl restart apache2
+```
 
 No hay `npm install`, no hay `composer install`, no hay build.
 

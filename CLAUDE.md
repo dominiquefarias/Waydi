@@ -2,102 +2,66 @@
 
 ## Qué es este proyecto
 
-App de itinerarios de viaje. Frontend en React + TypeScript + Tailwind CSS v4, backend en PHP con Apache, base de datos MySQL.
+App de itinerarios de viaje. PHP puro + HTML + CSS + JavaScript vanilla. Sin frameworks, sin npm, sin build tools.
 
-## Cómo correr el proyecto
-
-### Frontend
-```bash
-npm install
-npm run dev        # http://localhost:5173
-npm run build      # build de producción → dist/
-```
-
-### Backend
-```bash
-cd server
-composer install
-# Configura server/.env con DB_* y JWT_SECRET
-# Apache debe apuntar a /server como document root
-```
-
-### Base de datos
-```bash
-# Instalación desde cero:
-mysql -u root -p < database/schema.sql
-mysql -u root -p < database/seed.sql   # datos de ejemplo
-
-# Si la DB ya existe y solo faltan las migraciones:
-mysql -u root -p < database/migration_add_sharing.sql
-mysql -u root -p < database/migration_add_admin.sql
-```
-
-## Arquitectura
+## Estructura de archivos
 
 ```
-MySQL ←→ PHP (server/) ←→ React (src/) ← Usuario
+Waydi/
+├── config/
+│   ├── db.php          ← Conexión PDO a MySQL + carga del .env
+│   └── funciones.php   ← Helpers: sesión, auth, flash, escaping, iconos
+├── css/
+│   ├── auth.css        ← Estilos de login/registro/recuperar
+│   └── app.css         ← Estilos del itinerario, admin y listas
+├── js/
+│   ├── itinerario.js   ← Cambio de días, selección actividad/pin
+│   └── admin.js        ← Tabs del panel de admin
+├── admin/
+│   └── index.php       ← Panel de administración (solo is_admin=1)
+├── database/
+│   ├── schema.sql      ← Crea todas las tablas desde cero
+│   ├── seed.sql        ← Datos de ejemplo (París)
+│   ├── migration_add_sharing.sql
+│   └── migration_add_admin.sql
+├── index.php           ← Lista de viajes del usuario
+├── itinerario.php      ← Vista de un viaje (?id=X)
+├── login.php
+├── registro.php
+├── logout.php
+├── recuperar.php       ← Envía email con token de reset
+├── restablecer.php     ← Formulario para nueva contraseña (?token=X)
+├── nuevo-viaje.php     ← Formulario para crear un viaje
+├── .htaccess           ← Deshabilita listado de directorios
+└── .env                ← Variables de entorno (no está en git)
 ```
 
-- El frontend llama a la API vía `src/lib/api.ts` — **todas las llamadas HTTP pasan por ahí**
-- El backend tiene un único punto de entrada: `server/index.php` (router)
-- JWT en `localStorage` como `waydi_token`, enviado como `Authorization: Bearer <token>`
+## Cómo arrancar (Apache + MySQL)
 
-## Rutas del backend (server/)
+1. Clona el repo en la carpeta que sirve Apache (ej. `/var/www/html/waydi`)
+2. Apunta Apache a la raíz del proyecto
+3. Crea la base de datos: `mysql -u root -p < database/schema.sql`
+4. Copia y rellena el .env: `cp .env.example .env`
+5. Abre `http://localhost` en el navegador
 
-| Ruta | Archivo | Descripción |
-|---|---|---|
-| `/api/auth/*` | `routes/auth.php` | register, login, me, forgot-password, reset-password |
-| `/api/trips/*` | `routes/trips.php` | CRUD de viajes |
-| `/api/trips/:id/share` | `routes/shares.php` | Compartir viaje, gestionar miembros |
-| `/api/invitations/*` | `routes/shares.php` | Aceptar/rechazar invitaciones |
-| `/api/admin/*` | `routes/admin.php` | Panel de administración (requiere is_admin=1) |
+No hay `npm install`, no hay `composer install`, no hay build.
 
-## Rutas del frontend (src/)
+## Variables de entorno (.env)
 
-| Ruta | Componente | Acceso |
-|---|---|---|
-| `/login` | `pages/LoginPage.tsx` | Público |
-| `/register` | `pages/RegisterPage.tsx` | Público |
-| `/forgot-password` | `pages/ForgotPasswordPage.tsx` | Público |
-| `/reset-password` | `pages/ResetPasswordPage.tsx` | Público |
-| `/` | `ItineraryView` en `App.tsx` | Requiere login |
-| `/admin` | `pages/AdminPage.tsx` | Requiere `is_admin = 1` |
+| Variable | Para qué |
+|---|---|
+| DB_HOST / DB_PORT / DB_NAME | Conexión MySQL |
+| DB_USER / DB_PASSWORD | Credenciales MySQL |
+| MAIL_* | Configuración SMTP para correos |
+| APP_URL | URL base de la app (para links en emails) |
 
-## Añadir un nuevo endpoint PHP
+## Autenticación
 
-1. Elige el archivo de ruta correcto en `server/routes/`
-2. Añade un bloque `if ($action === '...' && $method === '...')` 
-3. Usa `requireAuth()` si necesita login, `requireAdmin($pdo)` si es solo para admins
-4. Si es una ruta completamente nueva, añade el patrón regex en `server/index.php`
-
-## Añadir una nueva página React
-
-1. Crea el archivo en `src/pages/NombrePage.tsx`
-2. Añade el `<Route>` en `src/App.tsx`
-3. Si necesita login, envuelve con `<RequireAuth>` (o `<RequireAdmin>` para admins)
-4. Las llamadas a la API van en `src/lib/api.ts`
-
-## Tokens de diseño (Tailwind v4)
-
-Definidos en `src/index.css` con `@theme`:
-
-| Token | Color | Uso |
-|---|---|---|
-| `--color-ink` | `#332E45` | Texto principal |
-| `--color-muted` | `#807A95` | Texto secundario |
-| `--color-faint` | `#A9A3BC` | Texto desactivado |
-| `--color-lila` | `#DCD0FF` | Acentos principales |
-| `--color-lila-deep` | `#B49BF0` | Hover / activo |
-| `--color-lavender` | `#ECE6FB` | Fondos suaves |
-| `--color-rosa` | `#FBD8E8` | Notas rosa |
-| `--color-canvas` | `#F6F4FC` | Fondo general |
-
-Clases de sombra especiales: `.soft`, `.soft-sm`, `.soft-lift` (sombras púrpura suaves).
-
-## Variables de entorno
-
-- **Frontend** (`.env`): `VITE_API_URL` — URL del backend PHP (default: `http://localhost:4000`)
-- **Backend** (`server/.env`): `DB_*`, `JWT_SECRET`, `SMTP_*`, `FRONTEND_URL`
+- PHP sessions (`$_SESSION['usuario']`)
+- `requireLogin()` en `config/funciones.php` — redirige a login si no hay sesión
+- `requireAdmin()` — además comprueba `is_admin = 1`
+- Contraseñas con `password_hash()` + `password_verify()` (bcrypt)
+- Recuperación de contraseña: token en DB + `mail()` de PHP
 
 ## Hacer a alguien administrador
 
@@ -105,14 +69,31 @@ Clases de sombra especiales: `.soft`, `.soft-sm`, `.soft-lift` (sombras púrpura
 UPDATE users SET is_admin = 1 WHERE email = 'correo@ejemplo.com';
 ```
 
-Luego accede a `/admin` en el frontend.
+Luego accede a `/admin/`.
 
-## Notas importantes
+## Añadir una nueva página
 
-- Tailwind v4 usa `@import "tailwindcss"` y `@theme {}` — **no hay `tailwind.config.ts`**
-- El plugin es `@tailwindcss/vite`, no PostCSS
-- PHP usa PDO para todas las consultas (sin mysqli)
-- Los tokens JWT expiran en 7 días
-- El endpoint `forgot-password` devuelve siempre el mismo mensaje (no revela si el email existe)
-- `tsconfig.json` es un único archivo (sin split app/node) — usa `tsc --noEmit` en el build
-- Los estilos globales están solo en `src/index.css` — `src/App.css` fue eliminado (era template de Vite)
+1. Crea el archivo PHP en la raíz (ej. `mi-pagina.php`)
+2. Incluye al principio:
+   ```php
+   require_once __DIR__ . '/config/db.php';
+   require_once __DIR__ . '/config/funciones.php';
+   $usuario = requireLogin(); // o requireAdmin()
+   $pdo = getDB();
+   ```
+3. Usa `e()` para escapar todo lo que imprimas del usuario
+4. Usa `setFlash('exito'|'error', 'mensaje')` para mensajes entre redirecciones
+5. Enlaza `/css/app.css` (o `/css/auth.css` para páginas de auth)
+
+## Tokens de diseño (CSS variables en app.css y auth.css)
+
+| Variable | Color | Uso |
+|---|---|---|
+| `--ink` | `#332E45` | Texto principal |
+| `--muted` | `#807A95` | Texto secundario |
+| `--faint` | `#A9A3BC` | Texto desactivado |
+| `--lila` | `#DCD0FF` | Acentos, tabs activos |
+| `--lila-deep` | `#B49BF0` | Botones primarios, hover |
+| `--lavender` | `#ECE6FB` | Fondos suaves |
+| `--rosa` | `#FBD8E8` | Notas rosa |
+| `--canvas` | `#F6F4FC` | Fondo general |

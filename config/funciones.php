@@ -1,0 +1,83 @@
+<?php
+function sesion(): void {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+}
+
+function usuarioActual(): ?array {
+    sesion();
+    return $_SESSION['usuario'] ?? null;
+}
+
+function requireLogin(): array {
+    sesion();
+    if (empty($_SESSION['usuario'])) {
+        header('Location: /login.php'); exit;
+    }
+    return $_SESSION['usuario'];
+}
+
+function requireAdmin(): array {
+    $u = requireLogin();
+    if (empty($u['is_admin'])) {
+        header('Location: /index.php'); exit;
+    }
+    return $u;
+}
+
+function setFlash(string $tipo, string $msg): void {
+    sesion();
+    $_SESSION['flash'] = ['tipo' => $tipo, 'msg' => $msg];
+}
+
+function getFlash(): ?array {
+    sesion();
+    if (!isset($_SESSION['flash'])) return null;
+    $f = $_SESSION['flash'];
+    unset($_SESSION['flash']);
+    return $f;
+}
+
+// Escapa HTML de forma segura
+function e(mixed $s): string {
+    return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+}
+
+// Envía correo usando la función mail() de PHP
+function enviarCorreo(string $para, string $asunto, string $cuerpoHtml): bool {
+    $headers  = "MIME-Version: 1.0\r\n";
+    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+    $from     = $_ENV['MAIL_FROM']      ?? 'noreply@waydi.local';
+    $name     = $_ENV['MAIL_FROM_NAME'] ?? 'waydi';
+    $headers .= "From: $name <$from>\r\n";
+    return mail($para, $asunto, $cuerpoHtml, $headers);
+}
+
+// Devuelve el icono SVG de una categoría de actividad
+function iconoCategoria(string $cat): string {
+    $iconos = [
+        'gastronomia'    => '🍽️',
+        'cultura'        => '🏛️',
+        'transporte'     => '🚉',
+        'naturaleza'     => '🌿',
+        'aventura'       => '⛵',
+        'compras'        => '🛍️',
+        'alojamiento'    => '🏨',
+        'entretenimiento'=> '🎭',
+    ];
+    return $iconos[$cat] ?? '📍';
+}
+
+// Clases CSS para la pastilla de categoría
+function claseCategoria(string $cat): string {
+    $clases = [
+        'gastronomia'    => 'cat-gastronomia',
+        'cultura'        => 'cat-cultura',
+        'transporte'     => 'cat-transporte',
+        'naturaleza'     => 'cat-naturaleza',
+        'aventura'       => 'cat-aventura',
+        'compras'        => 'cat-compras',
+        'alojamiento'    => 'cat-alojamiento',
+        'entretenimiento'=> 'cat-entretenimiento',
+    ];
+    return $clases[$cat] ?? 'cat-default';
+}

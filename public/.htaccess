@@ -1,9 +1,0 @@
-Options -MultiViews
-RewriteEngine On
-
-# Si el archivo existe físicamente (JS, CSS, imágenes), sírvelo tal cual
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-
-# Cualquier otra ruta → index.html (React Router se encarga del resto)
-RewriteRule ^ index.html [QSA,L]

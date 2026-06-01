@@ -72,7 +72,7 @@ function handleAuth(string $action, string $method, PDO $pdo): void {
     // ── GET /api/auth/me ───────────────────────────────────
     if ($action === 'me' && $method === 'GET') {
         $userId = requireAuth();
-        $stmt   = $pdo->prepare('SELECT id, name, email, created_at FROM users WHERE id = ?');
+        $stmt   = $pdo->prepare('SELECT id, name, email, is_admin, created_at FROM users WHERE id = ?');
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
         if (!$user) { http_response_code(404); echo json_encode(['error' => 'Usuario no encontrado']); return; }

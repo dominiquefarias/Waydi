@@ -11,6 +11,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { AdminPage } from './pages/AdminPage';
 import './index.css';
 
 function ItineraryView() {
@@ -61,6 +62,18 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+function RequireAdmin({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F4FC]">
+      <span className="text-[14px] font-semibold text-[#A9A3BC]">Cargando…</span>
+    </div>
+  );
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.is_admin) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -70,6 +83,9 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/" element={
         <RequireAuth><ItineraryView /></RequireAuth>
+      } />
+      <Route path="/admin" element={
+        <RequireAdmin><AdminPage /></RequireAdmin>
       } />
     </Routes>
   );

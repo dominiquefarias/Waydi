@@ -23,7 +23,11 @@ $uri    = rtrim($uri, '/');
 try {
     $pdo = getDB();
 
-    if (preg_match('#^/api/auth/([^/]+)$#', $uri, $m)) {
+    if (preg_match('#^/api/admin(/.*)?$#', $uri, $m)) {
+        require_once __DIR__ . '/routes/admin.php';
+        handleAdmin(ltrim($m[1] ?? '', '/'), $method, $pdo);
+
+    } elseif (preg_match('#^/api/auth/([^/]+)$#', $uri, $m)) {
         require_once __DIR__ . '/routes/auth.php';
         handleAuth($m[1], $method, $pdo);
 

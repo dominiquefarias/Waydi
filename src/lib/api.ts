@@ -30,7 +30,7 @@ export const api = {
         '/api/auth/login', { method: 'POST', body: JSON.stringify(body) }
       ),
     me: () =>
-      request<{ id: number; name: string; email: string }>('/api/auth/me'),
+      request<{ id: number; name: string; email: string; is_admin: number }>('/api/auth/me'),
     forgotPassword: (email: string) =>
       request<{ message: string }>(
         '/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }
@@ -49,6 +49,18 @@ export const api = {
       request<{ message: string }>(`/api/trips/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id: number) =>
       request<{ message: string }>(`/api/trips/${id}`, { method: 'DELETE' }),
+  },
+  admin: {
+    stats: () => request<AdminStats>('/api/admin/stats'),
+    users: (q?: string) => request<AdminUser[]>(`/api/admin/users${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+    user:  (id: number) => request<AdminUser>(`/api/admin/users/${id}`),
+    updateUser: (id: number, body: Partial<AdminUser>) =>
+      request<{ message: string }>(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    deleteUser: (id: number) =>
+      request<{ message: string }>(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    trips: (q?: string) => request<AdminTrip[]>(`/api/admin/trips${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+    deleteTrip: (id: number) =>
+      request<{ message: string }>(`/api/admin/trips/${id}`, { method: 'DELETE' }),
   },
 };
 
@@ -98,4 +110,39 @@ export interface NoteDB {
   tone: 'lila' | 'rosa' | 'lavender';
   title: string;
   text: string;
+}
+
+export interface AdminStats {
+  total_users: number;
+  total_trips: number;
+  total_activities: number;
+  total_shares: number;
+  new_users_week: number;
+  new_trips_week: number;
+  registrations_chart: { day: string; count: number }[];
+  categories: { category: string; count: number }[];
+}
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  is_admin: number;
+  created_at: string;
+  total_trips?: number;
+  trips?: { id: number; title: string; city: string; date_range: string }[];
+}
+
+export interface AdminTrip {
+  id: number;
+  title: string;
+  city: string;
+  date_range: string;
+  travelers: number;
+  created_at: string;
+  owner_name: string;
+  owner_email: string;
+  total_days: number;
+  total_activities: number;
+  total_collaborators: number;
 }

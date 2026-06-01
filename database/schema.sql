@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
   id              INT UNSIGNED     AUTO_INCREMENT PRIMARY KEY,
   name            VARCHAR(100)     NOT NULL,
   email           VARCHAR(255)     NOT NULL UNIQUE,
+  is_admin        TINYINT(1)       NOT NULL DEFAULT 0,
   password_hash   VARCHAR(255)     NOT NULL,
   reset_token     VARCHAR(255)     DEFAULT NULL,
   reset_expires   DATETIME         DEFAULT NULL,

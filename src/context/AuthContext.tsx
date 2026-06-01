@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 
-interface User { id: number; name: string; email: string; }
+interface User { id: number; name: string; email: string; is_admin: number; }
 
 interface AuthCtx {
   user: User | null;
@@ -27,15 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const { token, user } = await api.auth.login({ email, password });
+    const { token } = await api.auth.login({ email, password });
     localStorage.setItem('waydi_token', token);
-    setUser(user);
+    const fullUser = await api.auth.me();
+    setUser(fullUser);
   }
 
   async function register(name: string, email: string, password: string) {
-    const { token, user } = await api.auth.register({ name, email, password });
+    const { token } = await api.auth.register({ name, email, password });
     localStorage.setItem('waydi_token', token);
-    setUser(user);
+    const fullUser = await api.auth.me();
+    setUser(fullUser);
   }
 
   function logout() {

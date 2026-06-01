@@ -7,8 +7,19 @@ function handleTrips(string $path, string $method, PDO $pdo): void {
     // ── GET /api/trips  ·  POST /api/trips ────────────────
     if (count($parts) === 0) {
         if ($method === 'GET') {
-            $stmt = $pdo->prepare('SELECT * FROM trips WHERE user_id = ? ORDER BY created_at DESC');
-            $stmt->execute([$userId]);
+            // Viajes propios + viajes compartidos aceptados
+            $stmt = $pdo->prepare("
+                SELECT t.*, 'owner' AS my_role
+                FROM trips t
+                WHERE t.user_id = ?
+                UNION
+                SELECT t.*, ts.role AS my_role
+                FROM trips t
+                JOIN trip_shares ts ON ts.trip_id = t.id
+                WHERE ts.user_id = ? AND ts.status = 'accepted'
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute([$userId, $userId]);
             echo json_encode($stmt->fetchAll());
         } elseif ($method === 'POST') {
             $b = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -26,10 +37,18 @@ function handleTrips(string $path, string $method, PDO $pdo): void {
 
     $tripId = (int)$parts[0];
 
-    // Verificar que el viaje pertenece al usuario
-    $check = $pdo->prepare('SELECT id FROM trips WHERE id = ? AND user_id = ?');
-    $check->execute([$tripId, $userId]);
-    if (!$check->fetch()) { http_response_code(404); echo json_encode(['error' => 'Viaje no encontrado']); return; }
+    // Verificar acceso: dueño O colaborador aceptado
+    require_once __DIR__ . '/shares.php';
+    $isOwner = (bool) $pdo->prepare('SELECT id FROM trips WHERE id = ? AND user_id = ?')
+        ->execute([$tripId, $userId]) && ($pdo->query("SELECT id FROM trips WHERE id=$tripId AND user_id=$userId")->fetch());
+    // Forma limpia:
+    $ownerStmt = $pdo->prepare('SELECT id FROM trips WHERE id = ? AND user_id = ?');
+    $ownerStmt->execute([$tripId, $userId]);
+    $isOwner = (bool)$ownerStmt->fetch();
+
+    if (!$isOwner && !canAccessTrip($tripId, $userId, $pdo)) {
+        http_response_code(404); echo json_encode(['error' => 'Viaje no encontrado']); return;
+    }
 
     // ── GET /api/trips/:id  ·  PUT  ·  DELETE ─────────────
     if (count($parts) === 1) {
@@ -56,12 +75,14 @@ function handleTrips(string $path, string $method, PDO $pdo): void {
             echo json_encode($trip);
 
         } elseif ($method === 'PUT') {
+            if (!$isOwner) { http_response_code(403); echo json_encode(['error' => 'Solo el dueño puede editar el viaje']); return; }
             $b = json_decode(file_get_contents('php://input'), true) ?? [];
             $pdo->prepare('UPDATE trips SET title=?, subtitle=?, date_range=?, city=?, travelers=? WHERE id=?')
                 ->execute([$b['title'] ?? null, $b['subtitle'] ?? null, $b['date_range'] ?? null, $b['city'] ?? null, $b['travelers'] ?? 1, $tripId]);
             echo json_encode(['message' => 'Viaje actualizado']);
 
         } elseif ($method === 'DELETE') {
+            if (!$isOwner) { http_response_code(403); echo json_encode(['error' => 'Solo el dueño puede eliminar el viaje']); return; }
             $pdo->prepare('DELETE FROM trips WHERE id = ?')->execute([$tripId]);
             echo json_encode(['message' => 'Viaje eliminado']);
         }

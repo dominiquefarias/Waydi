@@ -27,6 +27,16 @@ try {
         require_once __DIR__ . '/routes/auth.php';
         handleAuth($m[1], $method, $pdo);
 
+    } elseif (preg_match('#^/api/trips/(\d+)/(share|members)(/.*)?$#', $uri, $m)) {
+        // Rutas de compartir: /api/trips/:id/share  y  /api/trips/:id/members
+        require_once __DIR__ . '/routes/shares.php';
+        handleShares($m[1] . '/' . $m[2], $method, $pdo);
+
+    } elseif (preg_match('#^/api/(invitations.*)$#', $uri, $m)) {
+        // Invitaciones: /api/invitations  y  /api/invitations/:id/accept|decline
+        require_once __DIR__ . '/routes/shares.php';
+        handleShares($m[1], $method, $pdo);
+
     } elseif (preg_match('#^/api/trips(/.*)?$#', $uri, $m)) {
         require_once __DIR__ . '/routes/trips.php';
         handleTrips($m[1] ?? '', $method, $pdo);

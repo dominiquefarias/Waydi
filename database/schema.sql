@@ -81,3 +81,20 @@ CREATE TABLE IF NOT EXISTS notes (
   text      TEXT,
   FOREIGN KEY (day_id) REFERENCES days(id) ON DELETE CASCADE
 );
+
+-- ------------------------------------------------------------
+-- Compartir viajes con otros usuarios
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS trip_shares (
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  trip_id     INT UNSIGNED NOT NULL,
+  user_id     INT UNSIGNED NOT NULL,              -- usuario invitado
+  invited_by  INT UNSIGNED NOT NULL,              -- dueño que invitó
+  role        ENUM('viewer','editor') NOT NULL DEFAULT 'editor',
+  status      ENUM('pending','accepted','declined') NOT NULL DEFAULT 'pending',
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_trip_user (trip_id, user_id),
+  FOREIGN KEY (trip_id)   REFERENCES trips(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id)   REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE CASCADE
+);

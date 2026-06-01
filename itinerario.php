@@ -36,6 +36,7 @@ foreach ($dias as &$dia) {
 unset($dia);
 
 $esPropietario = ($viaje['user_id'] === $usuario['id']);
+$totalActs     = array_sum(array_map(fn($d) => count($d['actividades']), $dias));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -66,15 +67,37 @@ $esPropietario = ($viaje['user_id'] === $usuario['id']);
 
 <!-- Hero -->
 <div class="hero">
-    <div class="hero-meta">
-        <span><?= e($viaje['city']) ?></span>
-        <span><?= e($viaje['date_range']) ?></span>
-        <span>👥 <?= e($viaje['travelers']) ?></span>
+    <div class="hero-top">
+        <div>
+            <div class="hero-meta">
+                <span><?= e($viaje['city']) ?></span>
+                <?php if ($viaje['date_range']): ?>
+                    <span class="sep">·</span>
+                    <span><?= e($viaje['date_range']) ?></span>
+                <?php endif; ?>
+                <?php if ($viaje['travelers']): ?>
+                    <span class="sep">·</span>
+                    <span>👥 <?= e($viaje['travelers']) ?></span>
+                <?php endif; ?>
+            </div>
+            <h1><?= e($viaje['title']) ?></h1>
+            <?php if ($viaje['subtitle']): ?>
+                <p class="hero-sub"><?= e($viaje['subtitle']) ?></p>
+            <?php endif; ?>
+        </div>
+        <?php if ($dias): ?>
+        <div class="hero-stats">
+            <div class="stat-box">
+                <div class="stat-box-num"><?= count($dias) ?></div>
+                <div class="stat-box-lbl">días</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-num"><?= $totalActs ?></div>
+                <div class="stat-box-lbl">actividades</div>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
-    <h1><?= e($viaje['title']) ?></h1>
-    <?php if ($viaje['subtitle']): ?>
-        <p class="hero-sub"><?= e($viaje['subtitle']) ?></p>
-    <?php endif; ?>
 
     <?php if ($dias): ?>
     <div class="tabs" id="tabs-dias">
@@ -82,10 +105,15 @@ $esPropietario = ($viaje['user_id'] === $usuario['id']);
             <button class="tab <?= $i === 0 ? 'activo' : '' ?>"
                     onclick="cambiarDia(<?= $i ?>)"
                     data-dia="<?= $i ?>">
-                <?= e($dia['label']) ?>
-                <?php if ($dia['weekday']): ?>
-                    <span style="font-weight:400;opacity:.7"> · <?= e($dia['weekday']) ?></span>
-                <?php endif; ?>
+                <span class="tab-num"><?= $i + 1 ?></span>
+                <div class="tab-info">
+                    <div class="tab-dia"><?= e($dia['label']) ?></div>
+                    <?php if ($dia['weekday']): ?>
+                        <div class="tab-fecha"><?= e($dia['weekday']) ?></div>
+                    <?php elseif ($dia['date']): ?>
+                        <div class="tab-fecha"><?= e($dia['date']) ?></div>
+                    <?php endif; ?>
+                </div>
             </button>
         <?php endforeach; ?>
     </div>
@@ -105,47 +133,69 @@ $esPropietario = ($viaje['user_id'] === $usuario['id']);
         <?php foreach ($dias as $i => $dia): ?>
         <div class="dia-seccion" id="dia-<?= $i ?>" style="<?= $i > 0 ? 'display:none' : '' ?>">
             <div class="timeline-card">
-                <div class="timeline-header">
-                    <span class="timeline-titulo">
-                        <?= e($dia['label']) ?>
+                <div class="tl-header">
+                    <div>
+                        <div class="tl-titulo"><?= e($dia['label']) ?></div>
                         <?php if ($dia['date']): ?>
-                            <span style="font-weight:500;color:var(--faint);font-size:13px"> · <?= e($dia['date']) ?></span>
+                            <div class="tl-sub"><?= e($dia['date']) ?></div>
                         <?php endif; ?>
-                    </span>
-                    <div class="timeline-nav">
-                        <button class="btn-nav" onclick="cambiarDia(<?= max(0, $i-1) ?>)" <?= $i === 0 ? 'disabled style="opacity:.35"' : '' ?>>‹</button>
-                        <button class="btn-nav" onclick="cambiarDia(<?= min(count($dias)-1, $i+1) ?>)" <?= $i === count($dias)-1 ? 'disabled style="opacity:.35"' : '' ?>>›</button>
+                    </div>
+                    <div class="tl-nav">
+                        <button class="btn-nav" onclick="cambiarDia(<?= max(0, $i-1) ?>)" <?= $i === 0 ? 'disabled' : '' ?>>‹</button>
+                        <button class="btn-nav" onclick="cambiarDia(<?= min(count($dias)-1, $i+1) ?>)" <?= $i === count($dias)-1 ? 'disabled' : '' ?>>›</button>
                     </div>
                 </div>
 
                 <?php if ($dia['actividades']): ?>
+                <div class="tl-items">
                     <?php foreach ($dia['actividades'] as $j => $act): ?>
-                    <div class="actividad" id="act-<?= $i ?>-<?= $j ?>"
+                    <?php $cat = $act['category'] ?: 'default'; ?>
+                    <div class="tl-item" id="act-<?= $i ?>-<?= $j ?>"
                          onclick="seleccionarActividad(<?= $i ?>, <?= $j ?>)">
-                        <div class="act-num"><?= $j + 1 ?></div>
-                        <div class="act-info">
-                            <div class="act-tiempo">
-                                <?= e($act['time']) ?>
-                                <?php if ($act['duration']): ?>
-                                    · <?= e($act['duration']) ?>
-                                <?php endif; ?>
+                        <div class="tl-tiempo">
+                            <?php if ($act['time']): ?>
+                                <span class="tl-hora"><?= e($act['time']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($act['duration']): ?>
+                                <span class="tl-dur"><?= e($act['duration']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="tl-dot-wrap">
+                            <div class="tl-dot dot-<?= e($cat) ?>"></div>
+                        </div>
+                        <div class="tl-card-wrap">
+                            <div class="tl-card">
+                                <div class="tl-chips">
+                                    <span class="act-chip <?= claseCategoria($cat) ?>">
+                                        <?= iconoCategoria($cat) ?> <?= e($act['category'] ?: '') ?>
+                                    </span>
+                                    <?php if ($act['pin_x'] || $act['pin_y']): ?>
+                                        <span class="en-mapa-badge">📍 en mapa</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="tl-body">
+                                    <div class="tl-icon icon-<?= e($cat) ?>"><?= iconoCategoria($cat) ?></div>
+                                    <div class="tl-info">
+                                        <div class="tl-nombre"><?= e($act['name']) ?></div>
+                                        <?php if ($act['place']): ?>
+                                            <div class="tl-lugar">📍 <?= e($act['place']) ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="tl-num"><?= $j + 1 ?></div>
+                                </div>
                             </div>
-                            <div class="act-nombre"><?= e($act['name']) ?></div>
-                            <?php if ($act['place']): ?>
-                                <div class="act-lugar">📍 <?= e($act['place']) ?></div>
-                            <?php endif; ?>
-                            <?php if ($act['category']): ?>
-                                <span class="act-chip <?= claseCategoria($act['category']) ?>">
-                                    <?= iconoCategoria($act['category']) ?> <?= e($act['category']) ?>
-                                </span>
-                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
+                </div>
                 <?php else: ?>
                     <p style="color:var(--faint);font-size:13.5px;text-align:center;padding:20px 0;">
                         Sin actividades este día
                     </p>
+                <?php endif; ?>
+
+                <?php if ($esPropietario): ?>
+                <button class="btn-add-act">+ Añadir actividad</button>
                 <?php endif; ?>
             </div>
         </div>
@@ -161,17 +211,21 @@ $esPropietario = ($viaje['user_id'] === $usuario['id']);
             <?php foreach ($dias as $i => $dia): ?>
             <div id="mapa-<?= $i ?>" style="<?= $i > 0 ? 'display:none' : '' ?>">
                 <div class="mapa">
+                    <div class="mapa-rio"></div>
+                    <div class="mapa-parque"></div>
+                    <div class="mapa-calle" style="top:45%"></div>
                     <?php foreach ($dia['actividades'] as $j => $act): ?>
                         <?php if ($act['pin_x'] || $act['pin_y']): ?>
                         <div class="pin" id="pin-<?= $i ?>-<?= $j ?>"
                              style="left:<?= (float)$act['pin_x'] ?>%;top:<?= (float)$act['pin_y'] ?>%"
                              onclick="seleccionarActividad(<?= $i ?>, <?= $j ?>)"
                              title="<?= e($act['name']) ?>">
-                            <?= $j + 1 ?>
+                            <div class="pin-num"><?= $j + 1 ?></div>
                         </div>
                         <?php endif; ?>
                     <?php endforeach; ?>
-                    <span class="ciudad-label"><?= e($viaje['city']) ?></span>
+                    <span class="ciudad-label">📍 <?= e($viaje['city']) ?></span>
+                    <button class="ver-mapa-btn">↗ Ver en mapa</button>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -181,18 +235,19 @@ $esPropietario = ($viaje['user_id'] === $usuario['id']);
         <?php foreach ($dias as $i => $dia): ?>
         <?php if ($dia['notas']): ?>
         <div class="notas-card" id="notas-<?= $i ?>" style="<?= $i > 0 ? 'display:none' : '' ?>">
-            <div class="notas-titulo">Notas del día</div>
-            <div class="notas-grid">
-                <?php foreach ($dia['notas'] as $nota): ?>
-                <div class="nota nota-tono-<?= e($nota['tone']) ?>">
-                    <?php if ($nota['icon']): ?>
-                        <div class="nota-icono"><?= e($nota['icon']) ?></div>
-                    <?php endif; ?>
+            <div class="notas-header">
+                <div class="notas-titulo">Notas del día</div>
+                <span class="notas-count"><?= count($dia['notas']) ?></span>
+            </div>
+            <?php foreach ($dia['notas'] as $nota): ?>
+            <div class="nota nota-tono-<?= e($nota['tone']) ?>">
+                <div class="nota-icon-wrap"><?= $nota['icon'] ? e($nota['icon']) : '📝' ?></div>
+                <div class="nota-body">
                     <div class="nota-titulo"><?= e($nota['title']) ?></div>
                     <div class="nota-texto"><?= e($nota['text']) ?></div>
                 </div>
-                <?php endforeach; ?>
             </div>
+            <?php endforeach; ?>
         </div>
         <?php endif; ?>
         <?php endforeach; ?>

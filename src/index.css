@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #F6F4FC;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.soft {
+  box-shadow: 0 14px 36px -18px rgba(108, 78, 178, 0.30);
+}
+
+.soft-sm {
+  box-shadow: 0 8px 20px -14px rgba(108, 78, 178, 0.32);
+}
+
+.soft-lift {
+  box-shadow: 0 22px 48px -20px rgba(108, 78, 178, 0.42);
+}
+
+.fade-up {
+  animation: fadeUp 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pinPop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-100%) scale(0.6); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(-100%) scale(1); }
+}
+
+.pin-pop {
+  animation: pinPop 0.35s cubic-bezier(.22,.61,.36,1) both;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
